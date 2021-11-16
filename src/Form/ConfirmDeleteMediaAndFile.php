@@ -134,6 +134,15 @@ class ConfirmDeleteMediaAndFile extends DeleteMultipleForm {
           $file = File::load($target_id);
           if ($file) {
             if (!$file->access('delete', $this->currentUser)) {
+              // May not be allowed access because it is a default thumbnail for media type.
+              if ($field->getName() == 'thumbnail') {
+                $default_thumbnail_filename = $entity->getSource()->getPluginDefinition()['default_thumbnail_filename'];
+                $default_thumbnail_uri = \Drupal::config('media.settings')
+                  ->get('icon_base_uri') . '/' . $default_thumbnail_filename;
+                if ($default_thumbnail_uri == $file->getFileUri()) {
+                  continue;
+                }
+              }              
               $inaccessible_entities[] = $file;
               continue;
             }
