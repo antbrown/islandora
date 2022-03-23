@@ -46,7 +46,7 @@ class IntegerWeightSelector extends FieldPluginBase {
       $options[$this->getValue($row)] = $this->getValue($row);
     }
 
-    // If we were given some blank values, or less than the 
+    // If we were given some blank values, or less than the
     // total_rows for the view, we need to fill
     // out the option list from 1 through the result count
     // to make sure we have enough. (Blanks should only appear
