@@ -90,7 +90,8 @@ class IslandoraUtils {
    */
   protected $cache;
 
-  /** Current user.
+  /**
+   * Current user.
    *
    * @var \Drupal\Core\Session\AccountProxyInterface
    */
