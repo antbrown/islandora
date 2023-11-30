@@ -3,6 +3,8 @@
 namespace Drupal\islandora;
 
 use Drupal\context\ContextManager;
+use Drupal\Component\Utility\Html;
+use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityInterface;
@@ -82,6 +84,19 @@ class IslandoraUtils {
   protected AccountInterface $currentUser;
 
   /**
+   * Cache backend.
+   *
+   * @var \Drupal\Core\Cache\CacheBackendInterface
+   */
+  protected $cache;
+
+  /** Current user.
+   *
+   * @var \Drupal\Core\Session\AccountProxyInterface
+   */
+  protected $currentUser;
+
+  /**
    * Constructor.
    *
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
@@ -96,6 +111,8 @@ class IslandoraUtils {
    *   Language manager.
    * @param \Drupal\Core\Session\AccountInterface $current_user
    *   The current user.
+   * @param \Drupal\Core\Cache\CacheBackendInterface
+   *   Cache backend.
    */
   public function __construct(
     EntityTypeManagerInterface $entity_type_manager,
@@ -104,6 +121,7 @@ class IslandoraUtils {
     FlysystemFactory $flysystem_factory,
     LanguageManagerInterface $language_manager,
     AccountInterface $current_user
+    CacheBackendInterface $cache,
   ) {
     $this->entityTypeManager = $entity_type_manager;
     $this->entityFieldManager = $entity_field_manager;
@@ -111,6 +129,7 @@ class IslandoraUtils {
     $this->flysystemFactory = $flysystem_factory;
     $this->languageManager = $language_manager;
     $this->currentUser = $current_user;
+    $this->cache = $cache;
   }
 
   /**
@@ -250,6 +269,19 @@ class IslandoraUtils {
    *   Calling getStorage() throws if the storage handler couldn't be loaded.
    */
   public function getTermForUri($uri) {
+
+    $cid_parts = [
+      'islandora',
+      'term-for-uri',
+      'user-' . $this->currentUser->id(),
+      'uri-' . Html::getClass($uri),
+    ];
+    $cid = implode(':', $cid_parts);
+
+    if ($cache = $this->cache->get($cid)) {
+      return $cache->data;
+    }
+
     // Get authority link fields to search.
     $field_map = $this->entityFieldManager->getFieldMap();
     $fields = [];
@@ -273,12 +305,20 @@ class IslandoraUtils {
       ->condition($orGroup)
       ->execute();
 
-    if (empty($results)) {
-      return NULL;
+    $term = NULL;
+    if (!empty($results)) {
+      $term = $this->entityTypeManager->getStorage('taxonomy_term')
+        ->load(reset($results));
     }
 
-    return $this->entityTypeManager->getStorage('taxonomy_term')
-      ->load(reset($results));
+    $this->cache->set(
+      $cid,
+      $term,
+      CacheBackendInterface::CACHE_PERMANENT,
+      $term->getCacheTags()
+    );
+
+    return $term;
   }
 
   /**
