@@ -4,6 +4,7 @@ namespace Drupal\islandora;
 
 use Drupal\context\ContextManager;
 use Drupal\Component\Utility\Html;
+use Drupal\Core\Cache\Cache;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
@@ -316,7 +317,7 @@ class IslandoraUtils {
       $cid,
       $term,
       CacheBackendInterface::CACHE_PERMANENT,
-      $term->getCacheTags()
+      Cache::mergeTags(array_merge($term->getCacheTags(), ['user:' . $this->currentUser->id()]))
     );
 
     return $term;
