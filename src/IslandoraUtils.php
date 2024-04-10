@@ -311,14 +311,13 @@ class IslandoraUtils {
     if (!empty($results)) {
       $term = $this->entityTypeManager->getStorage('taxonomy_term')
         ->load(reset($results));
+      $this->cache->set(
+        $cid,
+        $term,
+        CacheBackendInterface::CACHE_PERMANENT,
+        Cache::mergeTags(array_merge($term->getCacheTags(), ['user:' . $this->currentUser->id()]))
+      );
     }
-
-    $this->cache->set(
-      $cid,
-      $term,
-      CacheBackendInterface::CACHE_PERMANENT,
-      Cache::mergeTags(array_merge($term->getCacheTags(), ['user:' . $this->currentUser->id()]))
-    );
 
     return $term;
   }
