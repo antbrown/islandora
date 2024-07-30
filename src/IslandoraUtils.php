@@ -92,13 +92,6 @@ class IslandoraUtils {
   protected $cache;
 
   /**
-   * Current user.
-   *
-   * @var \Drupal\Core\Session\AccountProxyInterface
-   */
-  protected $currentUser;
-
-  /**
    * Constructor.
    *
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
@@ -122,7 +115,7 @@ class IslandoraUtils {
     ContextManager $context_manager,
     FlysystemFactory $flysystem_factory,
     LanguageManagerInterface $language_manager,
-    AccountInterface $current_user
+    AccountInterface $current_user,
     CacheBackendInterface $cache,
   ) {
     $this->entityTypeManager = $entity_type_manager;
